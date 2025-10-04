@@ -4,20 +4,20 @@ from starlette.background import BackgroundTask
 import subprocess
 import os
 import uuid
-from utils.files import remove_file
+from ..utils.files import remove_file
 
 router = APIRouter(prefix="/images", tags=["images"])
 
-@app.post("/convert-emf-to-png")
+@router.post("/convert-emf-to-png")
 async def convert_emf_to_png(file: UploadFile = File(...)):
-"""
-Convert an uploaded EMF file to PNG using Inkscape.
+    """
+    Convert an uploaded EMF file to PNG using Inkscape.
 
-Args:
-    file (UploadFile): The uploaded EMF file.
-Returns:
-    FileResponse: The converted PNG file or JSONResponse in case of error.
-"""
+    Args:
+        file (UploadFile): The uploaded EMF file.
+    Returns:
+        FileResponse: The converted PNG file or JSONResponse in case of error.
+    """
 
     if not file.filename.lower().endswith(".emf"):
         print("[ERROR] Uploaded file is not an EMF file")
