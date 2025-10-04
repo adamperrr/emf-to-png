@@ -1,13 +1,18 @@
-FROM python:3.11-slim
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV POETRY_VERSION=1.8.3
+ENV POETRY_VIRTUALENVS_CREATE=false
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends inkscape curl && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+    apt-get install -y --no-install-recommends \
+        python3.11 python3.11-venv python3.11-distutils \
+        python3-pip \
+        inkscape curl build-essential \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-ENV POETRY_VERSION=1.8.3
-RUN curl -sSL https://install.python-poetry.org | python3 - && \
-    ln -s /root/.local/bin/poetry /usr/local/bin/poetry
-ENV POETRY_VIRTUALENVS_CREATE=false
+RUN curl -sSL https://install.python-poetry.org | python3.11 - \
+    && ln -s /root/.local/bin/poetry /usr/local/bin/poetry
 
 WORKDIR /app
 
