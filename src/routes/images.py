@@ -96,33 +96,46 @@ async def convert_emf_to_png(
 
 
 async def _validate_parameters(file: UploadFile, width: int | None, height: int | None) -> JSONResponse | None:
-    if file.content_type != "image/emf":
-        return JSONResponse(
-            content={"error": "Invalid file type, only EMF files are supported"},
-            status_code=400,
-        )
+    # TODO: Currently content_type is: application/octet-stream
+    # if file.content_type != "image/emf":
+    #     message = "Invalid file type, only EMF files are supported"
+    #     logger.error(message)
+    #     return JSONResponse(
+    #         content={"error": message},
+    #         status_code=400,
+    #     )
 
     if not file.filename.lower().endswith(".emf"):
-        logger.error("Uploaded file is not an EMF file")
-        return JSONResponse(content={"error": "File must be .emf"}, status_code=400)
+        message = "File must be .emf"
+        logger.error(message)
+        return JSONResponse(
+            content={"error": message}, 
+            status_code=400
+        )
 
     header = await file.read(4)
     await file.seek(0)  # Reset file pointer after reading
     if header != b'\x01\x00\x00\x00':
+        message = "Invalid EMF file (bad header)"
+        logger.error(message)
         return JSONResponse(
-            content={"error": "Invalid EMF file (bad header)"}, 
+            content={"error": message},
             status_code=400
         )
 
     if height is not None and (not isinstance(height, int) or height <= 0):
+        message = "Height must be a positive integer"
+        logger.error(message)
         return JSONResponse(
-            content={"error": "Height must be a positive integer"},
+            content={"error": message},
             status_code=400,
         )
 
     if width is None and height is None:
+        message = "At least one of width or height must be specified"
+        logger.error(message)
         return JSONResponse(
-            content={"error": "At least one of width or height must be specified"},
+            content={"error": message},
             status_code=400,
         )
 

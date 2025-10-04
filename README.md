@@ -23,5 +23,5 @@ poetry run uvicorn src.app:app --host 0.0.0.0 --port 8000 --reload
 ## Converting EMF images to PNG
 
 ```bash
-curl -X POST -F "file=@sample1.emf" http://localhost:8000/images/convert-emf-to-png -o result.png
+curl -X POST -F "file=@sample1.emf" http://localhost:8000/images/convert-emf-to-png?width=500 -o result.png
 ```
