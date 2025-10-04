@@ -1,4 +1,4 @@
-from fastapi import APIRouter, File, UploadFile
+from fastapi import APIRouter, File, UploadFile, Query
 from fastapi.responses import FileResponse, JSONResponse
 from starlette.background import BackgroundTask
 import subprocess
@@ -11,8 +11,13 @@ logger = get_logger("routes.images")
 
 router = APIRouter(prefix="/images", tags=["images"])
 
+
 @router.post("/convert-emf-to-png")
-async def convert_emf_to_png(file: UploadFile = File(...)):
+async def convert_emf_to_png(
+    file: UploadFile = File(...),
+    width: int | None = Query(None, description="Optional output width in pixels"),
+    height: int | None = Query(None, description="Optional output height in pixels"),
+):
     """
     Convert an uploaded EMF file to PNG using Inkscape.
 
@@ -22,17 +27,19 @@ async def convert_emf_to_png(file: UploadFile = File(...)):
         FileResponse: The converted PNG file or JSONResponse in case of error.
     """
 
-    if not file.filename.lower().endswith(".emf"):
-        logger.error("Uploaded file is not an EMF file")
-        return JSONResponse(content={"error": "File must be .emf"}, status_code=400)
+    error_response = await _validate_parameters(file, width, height)
+    if error_response:
+        return error_response
 
     input_path = f"/tmp/{uuid.uuid4()}.emf"
     output_path = input_path.replace(".emf", ".png")
 
-    logger.info(f"Starting conversion for file: {file.filename}")
     logger.info(f"Input path: {input_path}")
     logger.info(f"Output path: {output_path}")
+    logger.info(f"Requested resize: width={width}, height={height}")
 
+    logger.info(f"Starting conversion for file: {file.filename}")
+    
     try:
         content = await file.read()
         with open(input_path, "wb") as f:
@@ -40,18 +47,19 @@ async def convert_emf_to_png(file: UploadFile = File(...)):
         input_size = os.path.getsize(input_path)
         logger.info(f"Input file saved ({input_size} bytes)")
 
-        logger.info("Running Inkscape...")
+        command = _prepare_inkscape_command(input_path, output_path, width, height)
+
+        logger.info(f"Executing: {' '.join(command)}")
 
         process = subprocess.Popen(
-            ["inkscape", input_path, "--export-type=png", "--export-filename", output_path],
+            command,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True
         )
 
         for line in iter(process.stdout.readline, ''):
-            logger.info(line.strip()) 
-            
+            logger.info(line.strip())
         for line in iter(process.stderr.readline, ''):
             logger.warning(line.strip())
 
@@ -69,7 +77,8 @@ async def convert_emf_to_png(file: UploadFile = File(...)):
         else:
             logger.error("Output file was not created")
             return JSONResponse(
-                content={"error": "Conversion failed, output file not found"}, status_code=500
+                content={"error": "Conversion failed, output file not found"},
+                status_code=500
             )
 
         return FileResponse(
@@ -85,3 +94,48 @@ async def convert_emf_to_png(file: UploadFile = File(...)):
             content={"error": "Unexpected error occurred, see logs for details"},
             status_code=500,
         )
+
+
+async def _validate_parameters(file: UploadFile, width: int | None, height: int | None) -> JSONResponse | None:
+    if file.content_type != "image/emf":
+        return JSONResponse(
+            content={"error": "Invalid file type, only EMF files are supported"},
+            status_code=400,
+        )
+
+    if not file.filename.lower().endswith(".emf"):
+        logger.error("Uploaded file is not an EMF file")
+        return JSONResponse(content={"error": "File must be .emf"}, status_code=400)
+
+    header = await file.read(4)
+    await file.seek(0)  # Reset file pointer after reading
+    if header != b'\x01\x00\x00\x00':
+        return JSONResponse(
+            content={"error": "Invalid EMF file (bad header)"}, 
+            status_code=400
+        )
+
+    if height is not None and (not isinstance(height, int) or height <= 0):
+        return JSONResponse(
+            content={"error": "Height must be a positive integer"},
+            status_code=400,
+        )
+
+    if width is None and height is None:
+        return JSONResponse(
+            content={"error": "At least one of width or height must be specified"},
+            status_code=400,
+        )
+
+    return None
+
+
+def _prepare_inkscape_command(input_path: str, output_path: str, width: int | None, height: int | None) -> list[str]:
+    command = ["inkscape", input_path, "--export-type=png", "--export-filename", output_path]
+
+    if width is not None:
+        command += ["--export-width", str(width)]
+    if height is not None:
+        command += ["--export-height", str(height)]
+
+    return command
