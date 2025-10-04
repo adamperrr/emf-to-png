@@ -1,4 +1,7 @@
 import os
+from .logger import get_logger
+
+logger = get_logger("utils.files")
 
 def remove_file(path: str):
     """
@@ -10,4 +13,4 @@ def remove_file(path: str):
     """
     if os.path.exists(path):
         os.remove(path)
-        print(f"[INFO] Deleted file: {path}")
+        logger.info(f"Deleted file: {path}")
