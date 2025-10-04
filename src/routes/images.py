@@ -17,7 +17,7 @@ async def convert_emf_to_png(
     file: UploadFile = File(...),
     width: int | None = Query(None, description="Optional output width in pixels"),
     height: int | None = Query(None, description="Optional output height in pixels"),
-):
+) -> FileResponse | JSONResponse:
     """
     Convert an uploaded EMF file to PNG using Inkscape.
 
@@ -48,7 +48,6 @@ async def convert_emf_to_png(
         logger.info(f"Input file saved ({input_size} bytes)")
 
         command = _prepare_inkscape_command(input_path, output_path, width, height)
-
         logger.info(f"Executing: {' '.join(command)}")
 
         process = subprocess.Popen(
