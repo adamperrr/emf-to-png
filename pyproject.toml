@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Simple endpoint for converting EMF images to PNG format"
 authors = ["Adamperrr"]
 license = "MIT"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.11"
