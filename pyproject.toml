@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "emf2png"
 version = "0.1.0"
-description = "Simple FastAPI service that converts EMF to PNG using Inkscape"
+description = "Simple endpoint for converting EMF images to PNG format"
 authors = ["Adamperrr"]
 license = "MIT"
 

@@ -1,6 +1,6 @@
 # emf-to-png
 
-Simple FastAPI service that converts EMF to PNG using Inkscape
+Simple endpoint for converting EMF images to PNG format
 
 ## Requirements
 
