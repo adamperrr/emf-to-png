@@ -1,19 +1,24 @@
-from fastapi import FastAPI, File, UploadFile
+from fastapi import APIRouter, File, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from starlette.background import BackgroundTask
 import subprocess
 import os
 import uuid
+from utils.files import remove_file
 
-app = FastAPI(title="EMF to PNG Converter")
+router = APIRouter(prefix="/images", tags=["images"])
 
-def remove_file(path: str):
-    if os.path.exists(path):
-        os.remove(path)
-        print(f"[INFO] Deleted file: {path}")
-
-@app.post("/convert")
+@app.post("/convert-emf-to-png")
 async def convert_emf_to_png(file: UploadFile = File(...)):
+"""
+Convert an uploaded EMF file to PNG using Inkscape.
+
+Args:
+    file (UploadFile): The uploaded EMF file.
+Returns:
+    FileResponse: The converted PNG file or JSONResponse in case of error.
+"""
+
     if not file.filename.lower().endswith(".emf"):
         print("[ERROR] Uploaded file is not an EMF file")
         return JSONResponse(content={"error": "File must be .emf"}, status_code=400)
