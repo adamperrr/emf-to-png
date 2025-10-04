@@ -1,6 +1,6 @@
 import logging
 
-default_formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(message)s")
+default_formatter = logging.Formatter("[%(levelname)s] %(asctime)s - %(message)s")
 default_level = logging.INFO
 
 def get_logger(name: str = "app") -> logging.Logger:
@@ -13,13 +13,6 @@ def get_logger(name: str = "app") -> logging.Logger:
         return logger
 
     logger.setLevel(default_level)
-
-    # File handler
-    # log_file = "logs/app.log"
-    # file_handler = logging.FileHandler(log_file)
-    # file_formatter = default_formatter
-    # file_handler.setFormatter(file_formatter)
-    # logger.addHandler(file_handler)
 
     # Console handler (optional)
     console_handler = logging.StreamHandler()

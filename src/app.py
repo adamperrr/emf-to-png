@@ -5,6 +5,7 @@ from .utils.logger import get_logger
 
 # Unify app logging
 logger = get_logger("app")
+
 uvicorn_access_logger = logging.getLogger("uvicorn.access")
 uvicorn_access_logger.handlers = logger.handlers
 uvicorn_access_logger.setLevel(logging.INFO)

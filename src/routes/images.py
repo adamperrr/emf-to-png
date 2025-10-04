@@ -49,10 +49,9 @@ async def convert_emf_to_png(file: UploadFile = File(...)):
             text=True
         )
 
-
         for line in iter(process.stdout.readline, ''):
-            logger.info(line.strip())
-
+            logger.info(line.strip()) 
+            
         for line in iter(process.stderr.readline, ''):
             logger.warning(line.strip())
 
